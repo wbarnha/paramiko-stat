@@ -4,7 +4,7 @@ from paramiko.sftp_client import SFTPClient
 from paramiko.common import DEBUG
 
 
-class SFTPStatClient(SFTPClient):
+class SFTPClient(SFTPClient):
 
     def exists(self, path):
         """
@@ -143,3 +143,10 @@ class SFTPStatClient(SFTPClient):
             return False
 
         return stat.S_ISDIR(path_stat.st_mode)
+
+
+class SFTP(SFTPClient):
+    """
+    An alias for `.SFTPClient` for backwards compatibility.
+    """
+    pass

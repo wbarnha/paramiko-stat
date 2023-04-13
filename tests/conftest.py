@@ -7,7 +7,7 @@ import threading
 
 import pytest
 from paramiko import RSAKey, SFTPServer
-from paramiko_stat import SFTPStatClient as SFTP
+from paramiko_stat import SFTPClient as SFTP
 from paramiko_stat import Transport
 
 from .loop import LoopSocket

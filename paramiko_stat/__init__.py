@@ -1,2 +1,2 @@
-from .sftp_client import SFTPStatClient
+from .sftp_client import SFTPClient, SFTP
 from .transport import Transport

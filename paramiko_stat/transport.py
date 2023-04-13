@@ -1,5 +1,5 @@
 from paramiko.transport import Transport as _Transport
-from .sftp_client import SFTPStatClient
+from .sftp_client import SFTPClient
 
 
 class Transport(_Transport):
@@ -14,4 +14,4 @@ class Transport(_Transport):
             a new `.SFTPClient` referring to an sftp session (channel) across
             this transport
         """
-        return SFTPStatClient.from_transport(self)
+        return SFTPClient.from_transport(self)
