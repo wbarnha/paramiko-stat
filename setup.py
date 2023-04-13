@@ -1,4 +1,4 @@
-"""Python setup.py for paramiko_stat package"""
+"""Python setup.py for paramiko-stat package"""
 import io
 import os
 from setuptools import find_packages, setup
@@ -30,17 +30,15 @@ def read_requirements(path):
 
 
 setup(
-    name="paramiko_stat",
-    version=read("paramiko_stat", "VERSION"),
-    description="Awesome paramiko_stat created by wbarnha",
+    name="paramiko-stat",
+    use_scm_version=True,
+    setup_requires=["setuptools_scm"],
+    description="Wrapper for paramiko with extra stat methods",
     url="https://github.com/wbarnha/paramiko-stat/",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
-    author="wbarnha",
+    author="William Barnhart, Gordon P. Hemsley",
     packages=find_packages(exclude=["tests", ".github"]),
     install_requires=read_requirements("requirements.txt"),
-    entry_points={
-        "console_scripts": ["paramiko_stat = paramiko_stat.__main__:main"]
-    },
     extras_require={"test": read_requirements("requirements-test.txt")},
 )
