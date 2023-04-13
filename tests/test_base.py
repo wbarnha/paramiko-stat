@@ -1,5 +1,5 @@
-from project_name.base import NAME
+from paramiko_stat.base import NAME
 
 
 def test_base():
-    assert NAME == "project_name"
+    assert NAME == "paramiko_stat"
