@@ -1,11 +1,10 @@
 import stat
 
-from paramiko.sftp_client import SFTPClient as _SFTPClient
 from paramiko.common import DEBUG
+from paramiko.sftp_client import SFTPClient as _SFTPClient
 
 
 class SFTPClient(_SFTPClient):
-
     def exists(self, path):
         """
         Check a path to determine whether it exists, based on `stat`.
@@ -149,4 +148,3 @@ class SFTP(SFTPClient):
     """
     An alias for `.SFTPClient` for backwards compatibility.
     """
-    pass

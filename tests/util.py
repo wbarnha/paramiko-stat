@@ -1,7 +1,7 @@
-from os.path import dirname, realpath, join
+import builtins
+from os.path import dirname, join, realpath
 
 import pytest
-import builtins
 
 
 def _support(filename):

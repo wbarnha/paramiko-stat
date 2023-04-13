@@ -26,7 +26,6 @@ import pytest
 
 from .util import slow
 
-
 ARTICLE = """
 Insulin sensitivity and liver insulin receptor structure in ducks from two
 genera
@@ -70,7 +69,6 @@ utf8_folder = b"/\xc3\xbcnic\xc3\xb8\x64\x65"
 
 @slow
 class TestSFTP(object):
-
     def test_exists(self, sftp):
         filename = "exists.txt"
         symlink_name = "also_exists.txt"

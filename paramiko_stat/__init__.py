@@ -1,3 +1,3 @@
-from .sftp_client import SFTPClient, SFTP
-from .transport import Transport
 from .client import SSHClient
+from .sftp_client import SFTP, SFTPClient
+from .transport import Transport

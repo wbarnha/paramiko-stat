@@ -1,22 +1,19 @@
-import sys
-import pytest
 import logging
 import os
 import shutil
 import threading
 
 import pytest
+from icecream import ic
+from icecream import install as install_ic
 from paramiko import RSAKey, SFTPServer
+
 from paramiko_stat import SFTPClient as SFTP
 from paramiko_stat import Transport
 
 from .loop import LoopSocket
 from .stub_sftp import StubServer, StubSFTPServer
 from .util import _support
-
-
-from icecream import ic, install as install_ic
-
 
 install_ic()
 ic.configureOutput(includeContext=True)

@@ -1,9 +1,9 @@
 from paramiko.transport import Transport as _Transport
+
 from .sftp_client import SFTPClient
 
 
 class Transport(_Transport):
-
     def open_sftp_client(self):
         """
         Create an SFTP client channel from an open transport.  On success, an
