@@ -10,3 +10,4 @@ mypy
 gitchangelog
 mkdocs
 icecream
+types-paramiko
