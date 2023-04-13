@@ -1,10 +1,10 @@
 import stat
 
-from paramiko.sftp_client import SFTPClient
+from paramiko.sftp_client import SFTPClient as _SFTPClient
 from paramiko.common import DEBUG
 
 
-class SFTPClient(SFTPClient):
+class SFTPClient(_SFTPClient):
 
     def exists(self, path):
         """
