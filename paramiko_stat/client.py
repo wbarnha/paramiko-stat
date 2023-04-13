@@ -146,7 +146,7 @@ class SSHClient(_SSHClient):
                     if timeout is not None:
                         try:
                             sock.settimeout(timeout)
-                        except:
+                        except Exception:
                             pass
                     sock.connect(addr)
                     # Break out of the loop on success
