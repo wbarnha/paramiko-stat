@@ -4,9 +4,7 @@ from errno import ECONNREFUSED, EHOSTUNREACH
 
 from paramiko.client import SSHClient as _SSHClient
 from paramiko.config import SSH_PORT
-from paramiko.py3compat import string_types
 from paramiko.ssh_exception import BadHostKeyException, NoValidConnectionsError
-from paramiko.util import retry_on_signal
 
 from paramiko_stat.transport import Transport
 
@@ -31,8 +29,11 @@ class SSHClient(_SSHClient):
         gss_host=None,
         banner_timeout=None,
         auth_timeout=None,
+        channel_timeout=None,
         gss_trust_dns=True,
         passphrase=None,
+        disabled_algorithms=None,
+        transport_factory=None,
     ):
         """
         Connect to an SSH server and authenticate to it.  The server's host key
@@ -41,32 +42,24 @@ class SSHClient(_SSHClient):
         is not found in either set of host keys, the missing host key policy
         is used (see `set_missing_host_key_policy`).  The default policy is
         to reject the key and raise an `.SSHException`.
-
         Authentication is attempted in the following order of priority:
-
             - The ``pkey`` or ``key_filename`` passed in (if any)
-
               - ``key_filename`` may contain OpenSSH public certificate paths
                 as well as regular private-key paths; when files ending in
                 ``-cert.pub`` are found, they are assumed to match a private
                 key, and both components will be loaded. (The private key
                 itself does *not* need to be listed in ``key_filename`` for
                 this to occur - *just* the certificate.)
-
             - Any key we can find through an SSH agent
             - Any "id_rsa", "id_dsa" or "id_ecdsa" key discoverable in
               ``~/.ssh/``
-
               - When OpenSSH-style public certificates exist that match an
                 existing such private key (so e.g. one has ``id_rsa`` and
                 ``id_rsa-cert.pub``) the certificate will be loaded alongside
                 the private key and used for authentication.
-
             - Plain username/password auth, if a password was given
-
         If a private key requires a password to unlock it, and a password is
         passed in, that password will be used to attempt to unlock the key.
-
         :param str hostname: the server to connect to
         :param int port: the server port to connect to
         :param str username:
@@ -107,16 +100,30 @@ class SSHClient(_SSHClient):
             for the SSH banner to be presented.
         :param float auth_timeout: an optional timeout (in seconds) to wait for
             an authentication response.
-
-        :raises:
-            `.BadHostKeyException` -- if the server's host key could not be
-            verified
-        :raises: `.AuthenticationException` -- if authentication failed
-        :raises:
-            `.SSHException` -- if there was any other error connecting or
-            establishing an SSH session
-        :raises socket.error: if a socket error occurred while connecting
-
+        :param float channel_timeout: an optional timeout (in seconds) to wait
+             for a channel open response.
+        :param dict disabled_algorithms:
+            an optional dict passed directly to `.Transport` and its keyword
+            argument of the same name.
+        :param transport_factory:
+            an optional callable which is handed a subset of the constructor
+            arguments (primarily those related to the socket, GSS
+            functionality, and algorithm selection) and generates a
+            `.Transport` instance to be used by this client. Defaults to
+            `.Transport.__init__`.
+        :raises BadHostKeyException:
+            if the server's host key could not be verified.
+        :raises AuthenticationException: if authentication failed.
+        :raises socket.error:
+            if a socket error (other than connection-refused or
+            host-unreachable) occurred while connecting.
+        :raises NoValidConnectionsError:
+            if all valid connection targets for the requested hostname (eg IPv4
+            and IPv6) yielded connection-refused or host-unreachable socket
+            errors.
+        :raises SSHException:
+            if there was any other error connecting or establishing an SSH
+            session.
         .. versionchanged:: 1.15
             Added the ``banner_timeout``, ``gss_auth``, ``gss_kex``,
             ``gss_deleg_creds`` and ``gss_host`` arguments.
@@ -124,6 +131,10 @@ class SSHClient(_SSHClient):
             Added the ``gss_trust_dns`` argument.
         .. versionchanged:: 2.4
             Added the ``passphrase`` argument.
+        .. versionchanged:: 2.6
+            Added the ``disabled_algorithms`` argument.
+        .. versionchanged:: 2.12
+            Added the ``transport_factory`` argument.
         """
         if not sock:
             errors = {}
@@ -137,10 +148,14 @@ class SSHClient(_SSHClient):
                             sock.settimeout(timeout)
                         except:
                             pass
-                    retry_on_signal(lambda: sock.connect(addr))
+                    sock.connect(addr)
                     # Break out of the loop on success
                     break
                 except socket.error as e:
+                    # As mentioned in socket docs it is better
+                    # to close sockets explicitly
+                    if sock:
+                        sock.close()
                     # Raise anything that isn't a straight up connection error
                     # (such as a resolution error)
                     if e.errno not in (ECONNREFUSED, EHOSTUNREACH):
@@ -158,8 +173,13 @@ class SSHClient(_SSHClient):
             if len(errors) == len(to_try):
                 raise NoValidConnectionsError(errors)
 
-        t = self._transport = Transport(
-            sock, gss_kex=gss_kex, gss_deleg_creds=gss_deleg_creds
+        if transport_factory is None:
+            transport_factory = Transport
+        t = self._transport = transport_factory(
+            sock,
+            gss_kex=gss_kex,
+            gss_deleg_creds=gss_deleg_creds,
+            disabled_algorithms=disabled_algorithms,
         )
         t.use_compression(compress=compress)
         t.set_gss_host(
@@ -175,6 +195,8 @@ class SSHClient(_SSHClient):
             t.banner_timeout = banner_timeout
         if auth_timeout is not None:
             t.auth_timeout = auth_timeout
+        if channel_timeout is not None:
+            t.channel_timeout = channel_timeout
 
         if port == SSH_PORT:
             server_hostkey_name = hostname
@@ -213,7 +235,7 @@ class SSHClient(_SSHClient):
 
         if key_filename is None:
             key_filenames = []
-        elif isinstance(key_filename, string_types):
+        elif isinstance(key_filename, str):
             key_filenames = [key_filename]
         else:
             key_filenames = key_filename
@@ -231,11 +253,3 @@ class SSHClient(_SSHClient):
             t.gss_host,
             passphrase,
         )
-
-    def open_stat_sftp(self):
-        """
-        Open an SFTP session on the SSH server.
-
-        :return: a new `.SFTPClient` session object
-        """
-        return self._transport.open_sftp_client()
