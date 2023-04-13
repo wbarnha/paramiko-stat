@@ -21,3 +21,13 @@ sftp = ssh.open_sftp()
 sftp.mkdir("path", mode=700)
 
 ```
+Alternatively, a much better practice:
+
+```py
+from paramiko import SSHClient
+from paramiko_stat import Transport
+
+ssh = SSHClient()
+ssh.connect("127.0.0.1", username="user", ..., transport_factory=Transport)
+
+```
