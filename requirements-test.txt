@@ -1,11 +1,13 @@
 # This requirements are for development and testing only, not for production.
+-r ./requirements.txt
 pytest
 coverage
 flake8
 black
 isort
 pytest-cov
-codecov
 mypy
 gitchangelog
 mkdocs
+icecream
+types-paramiko
